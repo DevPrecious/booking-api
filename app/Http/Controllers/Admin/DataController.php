@@ -86,6 +86,15 @@ class DataController extends Controller
         ], 201);
     }
 
+    public function getData(Data $data)
+    {
+        $data = Data::find($data);
+
+        return response([
+            'data' => $data
+        ], 200);
+    }
+
     public function destroy(Data $data)
     {
         $data->delete();

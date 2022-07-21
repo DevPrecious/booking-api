@@ -21,6 +21,7 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::post('/update/{dataN}', [DataController::class, 'update']);
     Route::post('/delete/{data}', [DataController::class, 'destroy']);
     Route::get('/all', [DataController::class, 'index']);
+    Route::get('/single/{data}', [DataController::class, 'getData']);
 });
 
 Route::post('/login', [AuthController::class, 'login']);
