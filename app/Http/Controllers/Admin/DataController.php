@@ -3,70 +3,36 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DataRequest;
 use App\Models\Data;
 use Illuminate\Http\Request;
 
 class DataController extends Controller
 {
-    public function create(Request $request) 
+    public function create(DataRequest $request)
     {
-        $request->validate([
-            'headerImage' => 'required|image',
-            'name' => 'required',
-            'timeAndNight' => 'required',
-            'date' => 'required',
-            'listPrice' => 'required',
-            'withPrice' => 'required',
-            'defaultImage' => 'required|image',
-            'departureDate' => 'required',
-            'returnDate' => 'required',
-            'flying' => 'required',
-            'included' => 'required',
-            'tours' => 'required'
-        ]);
 
-        $listPrice = $request->listPrice;
-        $newlistPrice = explode(',', $listPrice);
+        $newlistPrice = convertToArray($request->listPrice);
+        $newwithPrice = convertToArray($request->withPrice);
+        $newincluded = convertToArray($request->included);
+        $newtours = convertToArray($request->tours);
 
-        $withPrice = $request->withPrice;
-        $newwithPrice = explode(',', $withPrice);
+        $data = dataToSave(
+            $request->name,
+            $request->timeAndNight,
+            $request->date,
+            $newlistPrice,
+            $newwithPrice,
+            $request->departureDate,
+            $request->returnDate,
+            $request->flying,
+            $newincluded,
+            $newtours
+        );
 
-        $included = $request->included;
-        $newincluded = explode(',', $included);
-
-        $tours = $request->tours;
-        $newtours = explode(',', $tours);
-
-        $data = [
-            'name' => $request->name,
-            'timeAndNight' => $request->timeAndNight,
-            'date' => $request->date,
-            'listPrice' => serialize($newlistPrice),
-            'withPrice' => serialize($newwithPrice),
-            'departureDate' => $request->departureDate,
-            'returnDate' => $request->returnDate,
-            'flying' => $request->flying,
-            'included' => serialize($newincluded),
-            'tours' => serialize($newtours)
-        ];
-
-        if($request->file('headerImage') && $request->file('defaultImage')){
-            $headerImage = $request->file('headerImage');
-            $defaultImage = $request->file('defaultImage');
-            
-            $headerImageName = date('YmdHi').$headerImage->getClientOriginalName();
-            $defaultImageName = date('YmdHi').$defaultImage->getClientOriginalName();
-
-            //move image
-
-            $headerImage->move(public_path('public/images'), $headerImageName);
-            $defaultImage->move(public_path('public/images'), $defaultImageName);
-
-            // add to data array
-
-            $data['headerImage'] = $headerImageName;
-            $data['defaultImage'] = $defaultImageName;
-        }
+        $up = imageUpload($request->file('headerImage'), $request->file('defaultImage'));
+        $data['headerImage'] = $up['headerImage'];
+        $data['defaultImage'] = $up['defaultImage'];
 
         $data = Data::create($data);
 
@@ -75,9 +41,9 @@ class DataController extends Controller
             'message' => 'Posted'
         ], 201);
     }
-    
 
-    public function index() 
+
+    public function index()
     {
         $data = Data::latest()->get();
 
@@ -87,65 +53,30 @@ class DataController extends Controller
     }
 
 
-    public function update(Request $request, Data $dataN) 
+    public function update(DataRequest $request, Data $dataN)
     {
-        $request->validate([
-            'headerImage' => 'required|image',
-            'name' => 'required',
-            'timeAndNight' => 'required',
-            'date' => 'required',
-            'listPrice' => 'required',
-            'withPrice' => 'required',
-            'defaultImage' => 'required|image',
-            'departureDate' => 'required',
-            'returnDate' => 'required',
-            'flying' => 'required',
-            'included' => 'required',
-            'tours' => 'required'
-        ]);
 
-        $listPrice = $request->listPrice;
-        $newlistPrice = explode(',', $listPrice);
+        $newlistPrice = convertToArray($request->listPrice);
+        $newwithPrice = convertToArray($request->withPrice);
+        $newincluded = convertToArray($request->included);
+        $newtours = convertToArray($request->tours);
 
-        $withPrice = $request->withPrice;
-        $newwithPrice = explode(',', $withPrice);
+        $data = dataToSave(
+            $request->name,
+            $request->timeAndNight,
+            $request->date,
+            $newlistPrice,
+            $newwithPrice,
+            $request->departureDate,
+            $request->returnDate,
+            $request->flying,
+            $newincluded,
+            $newtours
+        );
 
-        $included = $request->included;
-        $newincluded = explode(',', $included);
-
-        $tours = $request->tours;
-        $newtours = explode(',', $tours);
-
-        $data = [
-            'name' => $request->name,
-            'timeAndNight' => $request->timeAndNight,
-            'date' => $request->date,
-            'listPrice' => serialize($newlistPrice),
-            'withPrice' => serialize($newwithPrice),
-            'departureDate' => $request->departureDate,
-            'returnDate' => $request->returnDate,
-            'flying' => $request->flying,
-            'included' => serialize($newincluded),
-            'tours' => serialize($newtours)
-        ];
-
-        if($request->file('headerImage') && $request->file('defaultImage')){
-            $headerImage = $request->file('headerImage');
-            $defaultImage = $request->file('defaultImage');
-            
-            $headerImageName = date('YmdHi').$headerImage->getClientOriginalName();
-            $defaultImageName = date('YmdHi').$defaultImage->getClientOriginalName();
-
-            //move image
-
-            $headerImage->move(public_path('public/images'), $headerImageName);
-            $defaultImage->move(public_path('public/images'), $defaultImageName);
-
-            // add to data array
-
-            $data['headerImage'] = $headerImageName;
-            $data['defaultImage'] = $defaultImageName;
-        }
+        $up = imageUpload($request->file('headerImage'), $request->file('defaultImage'));
+        $data['headerImage'] = $up['headerImage'];
+        $data['defaultImage'] = $up['defaultImage'];
 
         $dataN->update($data);
 
@@ -155,7 +86,7 @@ class DataController extends Controller
         ], 201);
     }
 
-    public function destroy(Data $data) 
+    public function destroy(Data $data)
     {
         $data->delete();
 
